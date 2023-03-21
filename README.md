@@ -14,7 +14,6 @@ download:
 
 `export OPENAI_API_KEY=<key>`
 
- - -s/--single: query only one specified file.
  - -q/--query: followed by a query in ""
  - -i/--interactive: opens interactive mode in the terminal. If a query is also specified it will be the first query ran.
  - -l/--level: specify the max recursive depth for walking the file system. Default is 1 (current directory).
