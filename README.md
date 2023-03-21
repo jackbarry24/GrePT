@@ -1,9 +1,12 @@
-# GrePT
+# <ins>GreP</ins>T
 Talk to your code. 
 
 ## Getting Started
-download grept using:
-`sudo apt intall grept`
+download:
+
+1. `git clone`
+2. `make` - must have pyinstaller installed `pip install pyinstaller`
+3. add the grept executable to your path `export PATH=$PATH:<path to grept executable>`
 
 ## Usage
 
@@ -11,7 +14,6 @@ download grept using:
 
 `export OPENAI_API_KEY=<key>`
 
- - -f/--files: followed by any amount of paths. Folders are queried recursively up to a specified depth. 
  - -s/--single: query only one specified file.
  - -q/--query: followed by a query in ""
  - -i/--interactive: opens interactive mode in the terminal. If a query is also specified it will be the first query ran.

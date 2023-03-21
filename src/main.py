@@ -69,23 +69,26 @@ def interactive(messages: list[dict], fname: str, tokens: int, query: str = None
         print(colored("> " + response, "light_blue"))
 
     while True:
-        query = input("> ")
-        if query.lower() in ["exit", "quit"]:
-            break
-        if query.lower() == "clear":
-            messages = []
-            print(colored("> Chat history cleared", "green"))
-            continue
-        
-        response, messages = answer(fname, messages, query, tokens)
-        response = response.replace("\n", "\n> ")
-        print(colored("> " + response, "light_blue"))
-
+        try:
+            query = input("> ")
+            if query.lower() in ["exit", "quit"]:
+                break
+            if query.lower() == "clear":
+                messages = []
+                print(colored("> Chat history cleared", "green"))
+                continue
+            
+            response, messages = answer(fname, messages, query, tokens)
+            response = response.replace("\n", "\n> ")
+            print(colored("> " + response, "light_blue"))
+        except KeyboardInterrupt:
+            print()
+            return
 
 def main():
     parser = argparse.ArgumentParser(description="Ask questions about your code")
 
-    parser.add_argument("-f", "--files", nargs="+", help="list of files and folders to crawl through")
+    parser.add_argument("files", nargs="+", help="list of files and folders to crawl through")
 
     mode_group = parser.add_argument_group()
     mode_group.add_argument("-q", "--query", type=str, help="input a query in the command")
