@@ -7,12 +7,17 @@ download grept using:
 
 ## Usage
 
+#### Set your API key
+
+`export OPENAI_API_KEY=<key>`
+
  - -f/--files: followed by any amount of paths. Folders are queried recursively up to a specified depth. 
  - -s/--single: query only one specified file.
  - -q/--query: followed by a query in ""
  - -i/--interactive: opens interactive mode in the terminal. If a query is also specified it will be the first query ran.
  - -l/--level: specify the max recursive depth for walking the file system. Default is 1 (current directory).
  - -x/--suffix: followed by any amount of file suffixes (e.g. .py). Will only query files with these file endings.
+ - -t/--tokens: specify the max amount of tokens in response. Defaults is 250. 
 
 #### Examples
 
