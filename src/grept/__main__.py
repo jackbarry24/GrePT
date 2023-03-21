@@ -1,7 +1,7 @@
 import os
 import argparse
-from termcolor import colored
-from completions import answer
+from termcolor import colored, cprint
+from grept import completions
 import sys
 
 def crawl(paths: list[str], level: int, suffix: list[str], ignore: list[str]) -> set[str]:
@@ -65,7 +65,7 @@ def interactive(messages: list[dict], fname: str, tokens: int, query: str = None
     """    
     if query:
         print("> " + query)
-        response, messages = answer(fname, messages, query)
+        response, messages = completions.answer(fname, messages, query)
         print(colored("> " + response, "light_blue"))
 
     while True:
@@ -77,10 +77,10 @@ def interactive(messages: list[dict], fname: str, tokens: int, query: str = None
                 messages = []
                 print(colored("> Chat history cleared", "green"))
                 continue
-            
-            response, messages = answer(fname, messages, query, tokens)
+            if query == "":
+                continue
+            response, messages = completions.answer(fname, messages, query, tokens)
             response = response.replace("\n", "\n> ")
-            print(colored("> " + response, "light_blue"))
         except KeyboardInterrupt:
             print()
             return
@@ -112,21 +112,20 @@ def main():
         sys.exit(1)
 
     ignore = []
-    # try:
-    #     with open(".greptignore", "r") as f:
-    #         ignore = f.read().splitlines()
-    # except FileNotFoundError:
-    #     pass
+    try:
+        with open(".greptignore", "r") as f:
+            ignore = f.read().splitlines()
+    except FileNotFoundError:
+        pass
     
     if args.interactive:
         file_set = crawl(args.files, args.level, args.suffix, ignore)
         interactive([], file_set, args.tokens, args.query)
     else:
         file_set = crawl(args.files, args.level, args.suffix, ignore)
-        response, messages = answer(file_set, [], args.query, args.tokens)
-        print(colored("> " + response, "light_blue"))
+        response, messages = completions.answer(file_set, [], args.query, args.tokens)
+
             
-    
 if __name__ == "__main__":
     main()
 

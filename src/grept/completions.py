@@ -1,6 +1,7 @@
 import openai
 import os
-from termcolor import colored
+from termcolor import colored, cprint
+import grept
 
 COMPLETIONS_MODEL = "gpt-3.5-turbo"
 EMBEDDINGS_MODEL = "text-embedding-ada-002"
@@ -50,13 +51,26 @@ def answer(file_set: set[str], messages: list[dict], query: str, tokens: int) ->
         response = openai.ChatCompletion.create(
             model=COMPLETIONS_MODEL,
             max_tokens=tokens,
-            messages=[system_prompt, transition_prompt, *file_messages, *messages]
+            messages=[system_prompt, transition_prompt, *file_messages, *messages],
+            stream = True
         )
     except:
         print(colored("> Error generating response", "red"))
+
+    if response:
+        chunks = []
+        for chunk in response:
+            try:
+                chunk_message = chunk['choices'][0]['delta']['content']
+            except:
+                continue
+            chunks.append(chunk_message)
+            cprint(chunk_message, "light_blue", end = "")
+        full_response = "".join(chunks)
+    print()
     
-    messages.append({"role": response.choices[0].message.role, "content": response.choices[0].message.content})
-    return response.choices[0].message.content, messages
+    messages.append({"role": "assistant", "content": full_response})
+    return full_response, messages
 
 
 
