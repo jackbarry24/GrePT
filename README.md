@@ -4,9 +4,12 @@ Talk to your code.
 ## Getting Started
 download:
 
-1. `git clone`
-2. `make` - must have pyinstaller installed `pip install pyinstaller`
-3. add the grept executable to your path `export PATH=$PATH:<path to grept executable>`
+As of right now:
+
+1. Clone this repo and run `pip install -e .` in the root directory.
+2. Get an API key from [OpenAI](https://beta.openai.com/).
+
+Working on publishing to PyPi.
 
 ## Usage
 
