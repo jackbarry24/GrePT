@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=59.6.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "GrePT"
+version = "1.0.0"
+description = "Talk to your code"
+readme = "README.md"
+authors = [{name = "Jack Barry", email = "jack.barry@live.com"}]
+license = { file = "LICENSE" }
+classifiers = []
+keywords = ["GPT", "OpenAI", "GPT-3"]
+dependencies = [
+    "openai >= 0.27.2",
+    "termcolor >= 2.2.0",
+]
+requires-python = ">=3.9"
+
+[project.urls]
+Homepage = "https://github.com/jackbarry24/GrePT"
+
+[project.scripts]
+grept = "grept.__main__:main"
+
+[tool.bumpver]
+current_version = "1.0.0"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message = "bump version {old_version} -> {new_version}"
+commit = true
+tag = true
+push = false
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+    'current_version = "{version}"',
+]
+
+"src/grept/__init__.py" = [
+    '__version__ = "{version}"',
+]
+
