@@ -4,6 +4,9 @@ from termcolor import colored, cprint
 from grept import completions
 import sys
 
+def _clear():
+    os.system("cls" if os.name == "nt" else "clear")
+
 def _crawl(paths: list[str], level: int, suffix: list[str], ignore: list[str]) -> set[str]:
     """Crawl through a list of files and folders
 
@@ -15,6 +18,7 @@ def _crawl(paths: list[str], level: int, suffix: list[str], ignore: list[str]) -
     Returns:
         set[str]: set of file paths
     """    
+    # a level of 1 corresponds to the current level, 2 will include all files in subfolders of current level, etc.
     level = level + 1
     files = set()
     for path in paths:
@@ -34,6 +38,10 @@ def _crawl_helper(files: set[str], path: str, level: int, suffix: list[str], ign
     if level == 0:
         return
     if os.path.isfile(path):
+        # ignore executables, .readlines() will not work
+        if os.access(path, os.X_OK):
+            return
+        # if suffix filtering is enabled, only add files with matching suffix
         if suffix:
             path_suffix = "." + path.split(".")[-1]
             if path_suffix in suffix and path not in ignore:
@@ -49,6 +57,7 @@ def _crawl_helper(files: set[str], path: str, level: int, suffix: list[str], ign
             return
         for subpath in os.listdir(path):
             _crawl_helper(files, os.path.join(path, subpath), level - 1, suffix, ignore)
+    # if path is a symbolic link, ignore
     elif os.path.islink(path):
         pass
     else:
@@ -63,8 +72,9 @@ def _interactive(file_set: list[str], messages: list[dict], tokens: int, query: 
         fname (str): file to query
         query (str, optional): query to ask. Defaults to None.
     """   
-    print("Type 'exit' or 'quit' to exit and 'clear' to clear chat history") 
     file_messages = completions._generate_file_messages(file_set)
+    print("Type 'exit' or 'quit' to exit and 'clear' to clear chat history") 
+    # if the user uses -i and -q, the -q query will be asked first in interactive mode
     if query:
         print("> " + query)
         response, messages = completions.answer(file_messages, messages, query, tokens)
@@ -77,6 +87,7 @@ def _interactive(file_set: list[str], messages: list[dict], tokens: int, query: 
                 break
             if query.lower() == "clear":
                 messages = []
+                _clear()
                 print(colored("> Chat history cleared", "green"))
                 continue
             if query == "":

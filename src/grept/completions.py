@@ -3,8 +3,11 @@ import os
 from termcolor import colored, cprint
 import grept
 import time
+import PyPDF2
+import tiktoken
 
 COMPLETIONS_MODEL = "gpt-3.5-turbo"
+MAX_INPUT_TOKENS = {"gpt-3.5-turbo": 4096}
 EMBEDDINGS_MODEL = "text-embedding-ada-002"
 
 def _generate_file_messages(file_set: set[str]) -> list[dict]:
@@ -18,12 +21,49 @@ def _generate_file_messages(file_set: set[str]) -> list[dict]:
     """    
     file_messages = []
     for fname in file_set:
-        with open(fname, "r") as f:
-            lines = f.readlines()
+        try:
+            with open(fname, "r") as f:
+                try:
+                    lines = f.readlines()
+                except:
+                    print(colored(f"> Error: Could not read file: {fname}", "red"))
+                    continue
+        except:
+            continue
         code = "".join([line for line in lines if line.strip() != ""])
+        # code_chunks = tiktoken.split(code, MAX_INPUT_TOKENS - 20)
+        # chunk_num = 1
+        # max_chunks = len(code_chunks)
+        # for chunk in code_chunks:
+        #     print(f"parsing chunk {chunk_num}/{max_chunks}")
+        #     code_prompt = "File Name: " + fname + f" Chunk {chunk_num}/{max_chunks}\n" + chunk
+        #     code_message = {"role": "system", "content": code_prompt}
+        #     file_messages.append(code_message)
+        #     chunk_num += 1
+
         code_prompt = "File Name: " + fname + "\n" + code
         code_message = {"role": "system", "content": code_prompt}
         file_messages.append(code_message)
+    return file_messages
+
+def _generate_pdf_message(fname: str) -> list[dict]:
+    #read pdf file
+    try:
+        pdfFileObj = open(fname, 'rb')
+    except:
+        print(colored(f"> Error: Could not read file: {fname}", "red"))
+        return []
+    
+    #create pdf reader object
+    pdfReader = PyPDF2.PdfFileReader(pdfFileObj)
+    #split the pdf into 4096 token chunks
+    # pdf_chunks = tiktoken.split(pdfReader, MAX_INPUT_TOKENS)
+
+    # file_messages = []
+    # for chunk in pdf_chunks:
+    #     pdf_message = {"role": "system", "content": chunk}
+    #     file_messages.append(pdf_message)
+    file_messages = [{"role": "system", "content": pdfReader}]
     return file_messages
 
 
