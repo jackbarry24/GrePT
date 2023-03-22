@@ -1,15 +1,11 @@
-# <ins>GreP</ins>T
+# GrePT
 ### Talk to your code. 
 
 ## Getting Started
 download:
 
-As of right now:
-
-1. Clone this repo and run `pip install -e .` in the root directory.
+1. `pip install GrePT`
 2. Get an API key from [OpenAI](https://beta.openai.com/).
-
-Working on publishing to PyPi.
 
 ## Usage
 
