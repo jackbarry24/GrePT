@@ -22,8 +22,8 @@ download:
 
 #### Examples
 
-`grept -s main.py -i` query the main.py file in interactive mode.
+`grept main.py -i` query the main.py file in interactive mode.
 
-`grept -f src/ README.md -q "What does this project do"` query the src directory and README.md
+`grept src/ README.md -q "What does this project do"` query the src directory and README.md
 
-`grept -f src/ -l 2 -x .py` query all python files within the src folder and its children
+`grept src/ -l 2 -x .py` query all python files within the src folder and its children
