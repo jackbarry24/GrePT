@@ -76,8 +76,8 @@ def _interactive(file_set: list[str], messages: list[dict], tokens: int, query: 
     print("Type 'exit' or 'quit' to exit and 'clear' to clear chat history") 
     # if the user uses -i and -q, the -q query will be asked first in interactive mode
     if query:
-        print("> " + query)
         response, messages = completions.answer(file_messages, messages, query, tokens)
+        print("> " + query)
         print(colored("> " + response, "light_blue"))
 
     while True:
