@@ -24,7 +24,7 @@ Homepage = "https://github.com/jackbarry24/GrePT"
 grept = "grept.__main__:main"
 
 [tool.bumpver]
-current_version = "1.0.0"
+current_version = "1.0.1"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 commit = true
