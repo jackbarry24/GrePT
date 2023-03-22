@@ -4,7 +4,7 @@ from termcolor import colored, cprint
 from grept import completions
 import sys
 
-def crawl(paths: list[str], level: int, suffix: list[str], ignore: list[str]) -> set[str]:
+def _crawl(paths: list[str], level: int, suffix: list[str], ignore: list[str]) -> set[str]:
     """Crawl through a list of files and folders
 
     Args:
@@ -18,10 +18,10 @@ def crawl(paths: list[str], level: int, suffix: list[str], ignore: list[str]) ->
     level = level + 1
     files = set()
     for path in paths:
-        crawl_helper(files, path, level, suffix, ignore)
+        _crawl_helper(files, path, level, suffix, ignore)
     return files
 
-def crawl_helper(files: set[str], path: str, level: int, suffix: list[str], ignore: list[str]) -> None:
+def _crawl_helper(files: set[str], path: str, level: int, suffix: list[str], ignore: list[str]) -> None:
     """Helper function for crawl
 
     Args:
@@ -48,14 +48,14 @@ def crawl_helper(files: set[str], path: str, level: int, suffix: list[str], igno
         if path.split("/")[-1].startswith("."):
             return
         for subpath in os.listdir(path):
-            crawl_helper(files, os.path.join(path, subpath), level - 1, suffix, ignore)
+            _crawl_helper(files, os.path.join(path, subpath), level - 1, suffix, ignore)
     elif os.path.islink(path):
         pass
     else:
         print(colored(f"Warning: '{path}' could not be read...proceeding", "yellow"), file=sys.stderr)
 
 
-def interactive(messages: list[dict], fname: str, tokens: int, query: str = None) -> None:
+def _interactive(messages: list[dict], fname: str, tokens: int, query: str = None) -> None:
     """interactive mode
 
     Args:
@@ -119,10 +119,10 @@ def main():
         pass
     
     if args.interactive:
-        file_set = crawl(args.files, args.level, args.suffix, ignore)
-        interactive([], file_set, args.tokens, args.query)
+        file_set = _crawl(args.files, args.level, args.suffix, ignore)
+        _interactive([], file_set, args.tokens, args.query)
     else:
-        file_set = crawl(args.files, args.level, args.suffix, ignore)
+        file_set = _crawl(args.files, args.level, args.suffix, ignore)
         response, messages = completions.answer(file_set, [], args.query, args.tokens)
 
             
