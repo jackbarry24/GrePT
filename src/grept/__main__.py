@@ -55,17 +55,19 @@ def _crawl_helper(files: set[str], path: str, level: int, suffix: list[str], ign
         print(colored(f"Warning: '{path}' could not be read...proceeding", "yellow"), file=sys.stderr)
 
 
-def _interactive(messages: list[dict], fname: str, tokens: int, query: str = None) -> None:
+def _interactive(file_set: list[str], messages: list[dict], tokens: int, query: str = None) -> None:
     """interactive mode
 
     Args:
         messages (list[dict]): message history
         fname (str): file to query
         query (str, optional): query to ask. Defaults to None.
-    """    
+    """   
+    print("Type 'exit' or 'quit' to exit and 'clear' to clear chat history") 
+    file_messages = completions._generate_file_messages(file_set)
     if query:
         print("> " + query)
-        response, messages = completions.answer(fname, messages, query)
+        response, messages = completions.answer(file_messages, messages, query, tokens)
         print(colored("> " + response, "light_blue"))
 
     while True:
@@ -79,7 +81,7 @@ def _interactive(messages: list[dict], fname: str, tokens: int, query: str = Non
                 continue
             if query == "":
                 continue
-            response, messages = completions.answer(fname, messages, query, tokens)
+            response, messages = completions.answer(file_messages, messages, query, tokens)
             response = response.replace("\n", "\n> ")
         except KeyboardInterrupt:
             print()
@@ -97,6 +99,7 @@ def main():
     parser.add_argument("-l", "--level", type=int, default=1, help="set the level of recursion for crawling (default: 1)")
     parser.add_argument("-x", "--suffix", nargs="+", help="filter files by suffix")
     parser.add_argument("-t", "--tokens", type=int, default=250, help="set the maximum number of tokens (default: 250)")
+
     args = parser.parse_args()
 
     if args.level < 1: 
@@ -120,16 +123,20 @@ def main():
     
     if args.interactive:
         file_set = _crawl(args.files, args.level, args.suffix, ignore)
-        _interactive([], file_set, args.tokens, args.query)
+        if not file_set:
+            print(colored("Error: no valid files found", "red"), file=sys.stderr)
+            sys.exit(1)
+        _interactive(file_set, [], args.tokens, args.query)
     else:
         file_set = _crawl(args.files, args.level, args.suffix, ignore)
-        response, messages = completions.answer(file_set, [], args.query, args.tokens)
+        if not file_set:
+            print(colored("Error: no valid files", "red"), file=sys.stderr)
+            sys.exit(1)
+        file_messages = completions._generate_file_messages(file_set)
+        response, messages = completions.answer(file_messages, [], args.query, args.tokens)
 
             
 if __name__ == "__main__":
     main()
 
-
-    
-
-        
+       

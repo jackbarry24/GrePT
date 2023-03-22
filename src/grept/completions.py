@@ -27,7 +27,7 @@ def _generate_file_messages(file_set: set[str]) -> list[dict]:
     return file_messages
 
 
-def answer(file_set: set[str], messages: list[dict], query: str, tokens: int) -> tuple[str, list[dict]]:
+def answer(file_messages: list[str], messages: list[dict], query: str, tokens: int) -> tuple[str, list[dict]]:
     """Generates response from file set, message history, and query
 
     Args:
@@ -40,12 +40,11 @@ def answer(file_set: set[str], messages: list[dict], query: str, tokens: int) ->
     """    
 
     messages.append({"role": "user", "content": query})
-    file_messages = _generate_file_messages(file_set)
 
     system_prompt = {"role": "system", "content": "You are a helpful assistant with following attributes: \
-                        extremely succinct, truthful, dont make stuff up, answer in the context of the provided code.\n"
+                        extremely succinct, truthful, dont make stuff up, answer in the context of the provided files.\n"
                     }
-    transition_prompt = {"role": "system", "content":  "Answer questions about the following file:\n"}
+    transition_prompt = {"role": "system", "content":  "Answer questions about the following file/files:\n"}
 
     try:
         openai.api_key = os.environ["OPENAI_API_KEY"]
@@ -87,18 +86,3 @@ def answer(file_set: set[str], messages: list[dict], query: str, tokens: int) ->
     
     messages.append({"role": "assistant", "content": full_response})
     return full_response, messages
-
-
-
-    
-
-
-
-
-
-
-    
-
-
-
-
