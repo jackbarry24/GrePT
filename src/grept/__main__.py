@@ -1,7 +1,7 @@
 import os
 import argparse
 from termcolor import colored, cprint
-from grept import completions
+from grept import completions, __init__
 import sys
 
 def _clear():
@@ -110,7 +110,6 @@ def main():
     parser.add_argument("-l", "--level", type=int, default=1, help="set the level of recursion for crawling (default: 1)")
     parser.add_argument("-x", "--suffix", nargs="+", help="filter files by suffix")
     parser.add_argument("-t", "--tokens", type=int, default=250, help="set the maximum number of tokens (default: 250)")
-
     args = parser.parse_args()
 
     if args.level < 1: 

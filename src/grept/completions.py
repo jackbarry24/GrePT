@@ -2,10 +2,7 @@ import openai
 import os
 from termcolor import colored, cprint
 import time
-# import PyPDF2
-# import tiktoken
-from grept import config
-
+from grept import config, tokenizer
 
 
 def _generate_file_messages(file_set: set[str]) -> list[dict]:
@@ -17,6 +14,8 @@ def _generate_file_messages(file_set: set[str]) -> list[dict]:
     Returns:
         list[dict]: formatted file messages
     """    
+
+    TOKSPLIT_BUF = 10
     file_messages = []
     for fname in file_set:
         try:
@@ -29,9 +28,11 @@ def _generate_file_messages(file_set: set[str]) -> list[dict]:
         except:
             continue
         code = "".join([line for line in lines if line.strip() != ""])
-        code_prompt = "File Name: " + fname + "\n" + code
-        code_message = {"role": "system", "content": code_prompt}
-        file_messages.append(code_message)
+        code_chunks = tokenizer.toksplit(code, config.MAX_INPUT_TOKENS[config.COMPLETIONS_MODEL] - TOKSPLIT_BUF)
+        for index, chunk in enumerate(code_chunks):
+            code_prompt = f"File Name: {fname}, Chunk: {index+1}/{len(code_chunks)}\n{chunk}"
+            code_message = {"role": "system", "content": code_prompt}
+            file_messages.append(code_message)
     return file_messages
 
 
