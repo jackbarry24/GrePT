@@ -73,7 +73,7 @@ def _interactive(file_set: list[str], messages: list[dict], tokens: int, query: 
         query (str, optional): query to ask. Defaults to None.
     """   
     file_messages = completions._generate_file_messages(file_set)
-    print("Type 'exit' or 'quit' to exit and 'clear' to clear chat history") 
+    print("'exit' or 'quit' to exit, 'clear' to clear chat history, 'refresh' to reload files") 
     # if the user uses -i and -q, the -q query will be asked first in interactive mode
     if query:
         response, messages = completions.answer(file_messages, messages, query, tokens)
@@ -89,6 +89,11 @@ def _interactive(file_set: list[str], messages: list[dict], tokens: int, query: 
                 messages = []
                 _clear()
                 print(colored("> Chat history cleared", "green"))
+                continue
+            if query.lower() == "refresh":
+                file_messages = completions._generate_file_messages(file_set)
+                for file in file_set:
+                    print(colored(f"Parsing file {file} ...", "green"))
                 continue
             if query == "":
                 continue
