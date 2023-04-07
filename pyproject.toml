@@ -41,3 +41,6 @@ push = false
     '__version__ = "{version}"',
 ]
 
+"src/grept/__main__.py" = [
+    'VERSION = "{version}"',
+]

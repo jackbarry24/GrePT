@@ -1,8 +1,10 @@
 import os
 import argparse
 from termcolor import colored, cprint
-from grept import completions, __init__
+from grept import completions
 import sys
+
+VERSION = "1.0.2"
 
 def _clear():
     os.system("cls" if os.name == "nt" else "clear")
@@ -91,6 +93,7 @@ def _interactive(file_set: list[str], messages: list[dict], tokens: int, query: 
                 print(colored("> Chat history cleared", "green"))
                 continue
             if query.lower() == "refresh":
+                messages = []
                 file_messages = completions._generate_file_messages(file_set)
                 for file in file_set:
                     print(colored(f"Parsing file {file} ...", "green"))
@@ -106,7 +109,7 @@ def _interactive(file_set: list[str], messages: list[dict], tokens: int, query: 
 def main():
     parser = argparse.ArgumentParser(description="Ask questions about your code")
 
-    parser.add_argument("files", nargs="+", help="list of files and folders to crawl through")
+    parser.add_argument("files", nargs="*", default=["./"], help="list of files and folders to crawl through")
 
     mode_group = parser.add_argument_group()
     mode_group.add_argument("-q", "--query", type=str, help="input a query in the command")
@@ -115,7 +118,14 @@ def main():
     parser.add_argument("-l", "--level", type=int, default=1, help="set the level of recursion for crawling (default: 1)")
     parser.add_argument("-x", "--suffix", nargs="+", help="filter files by suffix")
     parser.add_argument("-t", "--tokens", type=int, default=250, help="set the maximum number of tokens (default: 250)")
+
+    parser.add_argument("-v", "--version", action="store_true", help="dump version to stdout")
+    
     args = parser.parse_args()
+
+    if args.version:
+        print(VERSION)
+        sys.exit(0)
 
     if args.level < 1: 
         print(colored("Error: level must be greater than 0", "red"), file=sys.stderr)
@@ -124,7 +134,7 @@ def main():
     if not args.files:
         print(colored("Error: no files specified", "red"), file=sys.stderr)
         sys.exit(1)
-    
+
     if not args.query and not args.interactive:
         print(colored("Error: no query specified", "red"), file=sys.stderr)
         sys.exit(1)
