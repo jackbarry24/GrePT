@@ -4,7 +4,7 @@ from termcolor import colored, cprint
 from grept import completions
 import sys
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 
 def _clear():
     os.system("cls" if os.name == "nt" else "clear")
