@@ -2,8 +2,7 @@ import openai
 import os
 from termcolor import colored, cprint
 import time
-from grept import config, tokenizer
-
+from grept import tokenizer, config
 
 def _generate_file_messages(file_set: set[str]) -> list[dict]:
     """Generates dictionary of file messages
@@ -15,24 +14,32 @@ def _generate_file_messages(file_set: set[str]) -> list[dict]:
         list[dict]: formatted file messages
     """    
 
-    TOKSPLIT_BUF = 10
     file_messages = []
+    total_tokens = 0
+    hard_max = config.MAX_INPUT_TOKENS[config.COMPLETIONS_MODEL]
     for fname in file_set:
         try:
             with open(fname, "r") as f:
                 try:
                     lines = f.readlines()
                 except:
-                    print(colored(f"> Error: Could not read file: {fname}", "red"))
+                    print(colored(f"!Error: Could not read file: {fname}", "red"))
                     continue
         except:
             continue
+
+        lines = [line.replace(" ", "") for line in lines]
         code = "".join([line for line in lines if line.strip() != ""])
-        code_chunks = tokenizer.toksplit(code, config.MAX_INPUT_TOKENS[config.COMPLETIONS_MODEL] - TOKSPLIT_BUF)
-        for index, chunk in enumerate(code_chunks):
-            code_prompt = f"File Name: {fname}, Chunk: {index+1}/{len(code_chunks)}\n{chunk}"
-            code_message = {"role": "system", "content": code_prompt}
-            file_messages.append(code_message)
+        code = "**FILE: " + fname + "**\n" + code
+
+        total_tokens += tokenizer._get_tokens(code)
+        print(colored("Parsing file: {}... ({}/{})".format(fname, total_tokens, hard_max), "green"))
+        code_message = {"role": "system", "content": code}
+        file_messages.append(code_message)
+    if total_tokens > (hard_max - 1000):
+        print(colored("Warning: Token count ({}) is close to max ({}).".format(total_tokens, hard_max), "yellow"))
+        print(colored("Expect degraded model memory after token limit is exceeded.", "yellow"))
+        print(colored("Consider using embeddings.", "yellow"))
     return file_messages
 
 
@@ -47,7 +54,7 @@ def answer(file_messages: list[str], messages: list[dict], query: str, tokens: i
     Returns:
         tuple[str, list[dict]]: response and updated message history
     """    
-
+    #print(file_messages)
     messages.append({"role": "user", "content": query})
 
     system_prompt = {"role": "system", "content": "You are a helpful assistant with following attributes: \
@@ -58,7 +65,7 @@ def answer(file_messages: list[str], messages: list[dict], query: str, tokens: i
     try:
         openai.api_key = os.environ["OPENAI_API_KEY"]
     except KeyError:
-        print(colored("> Error: OPENAI_API_KEY not found in environment", "red"))
+        print(colored("!Error: OPENAI_API_KEY not found in environment", "red"))
         return "", messages
     
     MAX_RETRIES = 2
@@ -74,11 +81,11 @@ def answer(file_messages: list[str], messages: list[dict], query: str, tokens: i
             )
             break
         except Exception as e:
-            print(colored("> Error generating response (attempt {}/{}): {}".format(i+1, MAX_RETRIES, str(e)), "red"))
+            print(colored("!Error generating response (attempt {}/{}): {}".format(i+1, MAX_RETRIES, str(e)), "red"))
             time.sleep(RETRY_DELAY_SECONDS)
     else:
         response = None
-        print(colored("> Max retries exceeded. Failed to generate response.", "red"))
+        print(colored("!Max retries exceeded. Failed to generate response.", "red"))
 
     full_response = ""
     if response:

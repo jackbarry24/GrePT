@@ -1,0 +1,101 @@
+import os
+from termcolor import colored
+from grept.config import MAX_INPUT_TOKENS, COMPLETIONS_MODEL
+from grept.tokenizer import _get_tokens
+
+
+def _clear():
+    os.system("cls" if os.name == "nt" else "clear")
+
+def _crawl(paths: list[str], level: int, suffix: list[str], ignore: list[str]) -> set[str]:
+    """Crawl through a list of files and folders
+
+    Args:
+        paths (list[str]): list of target paths
+        level (int): maximum recursion depth
+        suffix (list[str]): file suffix
+        ignore (list[str]): list of files to ignore
+    Returns:
+        set[str]: set of file paths
+    """    
+    # a level of 1 corresponds to the current level, 2 will include all files in subfolders of current level, etc.
+    level = level + 1
+    files = set()
+    for path in paths:
+        _crawl_helper(files, path, level, suffix, ignore)
+    return files
+
+def _crawl_helper(files: set[str], path: str, level: int, suffix: list[str], ignore: list[str]) -> None:
+    """Helper function for crawl
+
+    Args:
+        files (set[str]): set of file paths
+        path (str): target path
+        level (int): maximum recursion depth
+        suffix (list[str]): file suffix
+        ignore (list[str]): list of files to ignore
+    """    
+    if level == 0:
+        return
+    if os.path.isfile(path):
+        # ignore executables, .readlines() will not work
+        if os.access(path, os.X_OK):
+            return
+        # if suffix filtering is enabled, only add files with matching suffix
+        if suffix:
+            path_suffix = "." + path.split(".")[-1]
+            if path_suffix in suffix and path not in ignore:
+                files.add(path)
+        else:
+            if path not in ignore:
+                files.add(path)
+    elif os.path.isdir(path):
+        # ignore hidden directories
+        if path.split("/")[-1].startswith("."):
+            return
+        for subpath in os.listdir(path):
+            _crawl_helper(files, os.path.join(path, subpath), level - 1, suffix, ignore)
+    # if path is a symbolic link, ignore
+    elif os.path.islink(path):
+        pass
+    else:
+        print(colored(f"Warning: '{path}' was not found...proceeding", "yellow"))
+
+
+def _generate_file_messages(file_set: set[str]) -> list[dict]:
+    """Generates dictionary of file messages
+
+    Args:
+        file_set (set[str]): list of files to query
+
+    Returns:
+        list[dict]: formatted file messages
+    """    
+
+    file_messages = []
+    total_tokens = 0
+    hard_max = MAX_INPUT_TOKENS[COMPLETIONS_MODEL]
+    for fname in file_set:
+        try:
+            with open(fname, "r") as f:
+                try:
+                    lines = f.readlines()
+                except:
+                    print(colored(f"!Error: Could not read file: {fname}", "red"))
+                    continue
+        except:
+            continue
+
+        lines = [line.replace(" ", "") for line in lines]
+        code = "".join([line for line in lines if line.strip() != ""])
+        code = "**FILE: " + fname + "**\n" + code
+
+        total_tokens += _get_tokens(code)
+        print(colored("Parsing file: {}... ({}/{})".format(fname, total_tokens, hard_max), "green"))
+        code_message = {"role": "system", "content": code}
+        file_messages.append(code_message)
+    if total_tokens > (hard_max - 1000):
+        print(colored("Warning: Token count ({}) is close to max ({}).".format(total_tokens, hard_max), "yellow"))
+        print(colored("Expect degraded model memory after token limit is exceeded.", "yellow"))
+        print(colored("Consider using embeddings.", "yellow"))
+    return file_messages
