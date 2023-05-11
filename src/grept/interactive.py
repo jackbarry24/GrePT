@@ -1,6 +1,4 @@
 # handle the interactive chat mode w/ embeddings & normal chat
-
-from grept import config, tokenizer
 from termcolor import colored
 from grept.util import _generate_file_messages, _clear
 from grept.completions import answer
@@ -13,11 +11,13 @@ class Interactive:
 
 
 class EmbeddingChat(Interactive):
-    def __init__(self, embedding):
-        super().__init__(embedding)
-    
+    def __init__(self, messages, tokens, query, embedding):
+        super().__init__(messages, tokens, query)
+        self.embedding = embedding
+
     def load(self):
-        return _generate_file_messages(self.file_set)
+        pass
+
 
 class CompletionChat(Interactive):
     #create sub class from interactive with extra argument "file_set"
@@ -30,12 +30,13 @@ class CompletionChat(Interactive):
 
     def interact(self):
         print("'exit' or 'quit' to exit, 'clear' to clear chat history, 'refresh' to reload files") 
-        # if the user uses -i and -q, the -q query will be asked first in interactive mode
+        #handles a -q flag in future
         if self.init_query:
             response, self.messages = answer(self.file_messages, self.messages, self.init_query, self.tokens)
             print("> " + self.init_query)
             print(colored("> " + response, "light_blue"))
 
+        #this should be shared between both subclasses
         while True:
             print(self.messages)
             try:
@@ -54,6 +55,7 @@ class CompletionChat(Interactive):
                 if query == "":
                     continue
                 response, self.messages = answer(self.file_messages, self.messages, query, self.tokens)
+                #literally no idea why this line is here
                 response = response.replace("\n", "\n ")
             except KeyboardInterrupt:
                 print()

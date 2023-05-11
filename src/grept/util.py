@@ -1,8 +1,8 @@
 import os
-from termcolor import colored
+import sys
+import tiktoken
+from termcolor import colored, cprint
 from grept.config import MAX_INPUT_TOKENS, COMPLETIONS_MODEL
-from grept.tokenizer import _get_tokens
-
 
 def _clear():
     os.system("cls" if os.name == "nt" else "clear")
@@ -78,24 +78,39 @@ def _generate_file_messages(file_set: set[str]) -> list[dict]:
     for fname in file_set:
         try:
             with open(fname, "r") as f:
-                try:
-                    lines = f.readlines()
-                except:
-                    print(colored(f"!Error: Could not read file: {fname}", "red"))
-                    continue
+                lines = f.readlines()
         except:
+            error("could not read file: {}".format(fname))
             continue
-
+        
         lines = [line.replace(" ", "") for line in lines]
         code = "".join([line for line in lines if line.strip() != ""])
         code = "**FILE: " + fname + "**\n" + code
 
         total_tokens += _get_tokens(code)
-        print(colored("Parsing file: {}... ({}/{})".format(fname, total_tokens, hard_max), "green"))
+        print(colored("Parsing file: {}... ({}/{} tkn)".format(fname, total_tokens, hard_max), "green"))
         code_message = {"role": "system", "content": code}
         file_messages.append(code_message)
+
     if total_tokens > (hard_max - 1000):
         print(colored("Warning: Token count ({}) is close to max ({}).".format(total_tokens, hard_max), "yellow"))
         print(colored("Expect degraded model memory after token limit is exceeded.", "yellow"))
         print(colored("Consider using embeddings.", "yellow"))
     return file_messages
+
+def _get_tokens(string: str) -> int:
+    """Gets number of tokens in a string
+
+    Args:
+        string (str): string to tokenize
+
+    Returns:
+        int: number of tokens
+    """    
+    enc = tiktoken.encoding_for_model(COMPLETIONS_MODEL)
+    tokens = len(enc.encode(string))
+    return tokens
+
+def error(e):
+    print(colored("!Error: {}".format(str(e)), "red"), file=sys.stderr)
+    return -1

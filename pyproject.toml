@@ -23,6 +23,7 @@ Homepage = "https://github.com/jackbarry24/GrePT"
 
 [project.scripts]
 grept = "grept.__main__:main"
+grept-embed = "grept.embed:embed"
 
 [tool.bumpver]
 current_version = "1.1.1"

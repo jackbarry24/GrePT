@@ -1,46 +1,31 @@
 import argparse
 import sys
-from termcolor import colored
+from termcolor import cprint, colored
 
-from grept.completions import answer, _generate_file_messages
-from grept.util import _crawl
+from grept.completions import answer
+from grept.util import _crawl, error, _generate_file_messages
 from grept.interactive import EmbeddingChat, CompletionChat
+from grept.__init__ import __version__
 
-
-VERSION = "1.1.1"
 
 def main():
     parser = argparse.ArgumentParser(description="Ask questions about your code")
 
-    parser.add_argument("files", nargs="*", default=["./"], help="list of files and folders to crawl through")
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("-c", "--chat", action="store_true", help="chat mode")
+    mode.add_argument("-e", "--embed", help="embed mode")
 
-    mode_group = parser.add_argument_group()
-    mode_group.add_argument("-q", "--query", type=str, help="input a query in the command")
-    mode_group.add_argument("-i", "--interactive", action="store_true", help="start interactive mode")
-    
-    parser.add_argument("-l", "--level", type=int, default=1, help="set the level of recursion for crawling (default: 1)")
-    parser.add_argument("-x", "--suffix", nargs="+", help="filter files by suffix")
-    parser.add_argument("-t", "--tokens", type=int, default=250, help="set the maximum number of tokens (default: 250)")
+    parser.add_argument("files", nargs="*", default=["./"], help="files to query for chat mode")
+    parser.add_argument("-l", "--level", type=int, default=1, help="level of directory recursion")
+    parser.add_argument("-x", "--suffix", nargs="+", help="file suffix to query")
+    parser.add_argument("-t", "--tokens", type=int, default=256, help="maximum tokens to generate")
+    parser.add_argument("-v", "--version", action="store_true", help="print version")
 
-    parser.add_argument("-v", "--version", action="store_true", help="dump version to stdout")
-    
     args = parser.parse_args()
 
     if args.version:
-        print(VERSION)
+        print(__version__)
         sys.exit(0)
-
-    if args.level < 1: 
-        print(colored("Error: level must be greater than 0", "red"), file=sys.stderr)
-        sys.exit(1)
-
-    if not args.files:
-        print(colored("Error: no files specified", "red"), file=sys.stderr)
-        sys.exit(1)
-
-    if not args.query and not args.interactive:
-        print(colored("Error: no query specified", "red"), file=sys.stderr)
-        sys.exit(1)
 
     ignore = []
     try:
@@ -48,24 +33,27 @@ def main():
             ignore = f.read().splitlines()
     except FileNotFoundError:
         pass
-    
-    file_set = _crawl(args.files, args.level, args.suffix, ignore)
-    if args.interactive:
-        if not file_set:
-            print(colored("Error: no valid files found", "red"), file=sys.stderr)
+
+    if args.embed:
+        def load(path): print("loading {}".format(path))
+        load(args.embed)
+    else:
+        if args.level < 1: 
+            error("level must be greater than 0")
             sys.exit(1)
-        chat = CompletionChat([], args.tokens, args.query, file_set)
+        file_set = _crawl(args.files, args.level, args.suffix, ignore)
+        if not file_set:
+            error("no files found")
+            sys.exit(1)
+        chat = CompletionChat([], args.tokens, "", file_set)
         chat.load()
         chat.interact()
-    else:
-        if not file_set:
-            print(colored("Error: no valid files", "red"), file=sys.stderr)
-            sys.exit(1)
-        file_messages = _generate_file_messages(file_set)
-        response, messages = answer(file_messages, [], args.query, args.tokens)
+    
 
-            
 if __name__ == "__main__":
     main()
+
+
+
 
        
