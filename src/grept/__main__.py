@@ -17,7 +17,7 @@ def main():
 
     parser.add_argument("files", nargs="*", default=["./"], help="files to query for chat mode")
     parser.add_argument("-l", "--level", type=int, default=1, help="level of directory recursion")
-    parser.add_argument("-x", "--suffix", nargs="+", help="file suffix to query")
+    parser.add_argument("-x", "--suffix", nargs="+", help="filter files by suffix")
     parser.add_argument("-t", "--tokens", type=int, default=256, help="maximum tokens to generate")
     parser.add_argument("-v", "--version", action="store_true", help="print version")
 

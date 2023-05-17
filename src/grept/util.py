@@ -2,7 +2,11 @@ import os
 import sys
 import tiktoken
 from termcolor import colored, cprint
-from grept.config import MAX_INPUT_TOKENS, COMPLETIONS_MODEL
+import chromadb
+from chromadb.utils import embedding_functions
+from chromadb.config import Settings
+
+from grept.config import MAX_INPUT_TOKENS, COMPLETIONS_MODEL, EMBEDDINGS_MODEL
 
 def _clear():
     os.system("cls" if os.name == "nt" else "clear")
@@ -62,7 +66,7 @@ def _crawl_helper(files: set[str], path: str, level: int, suffix: list[str], ign
         print(colored(f"Warning: '{path}' was not found...proceeding", "yellow"))
 
 
-def _generate_file_messages(file_set: set[str]) -> list[dict]:
+def _generate_file_messages(file_set: set[str], embed=False):
     """Generates dictionary of file messages
 
     Args:
@@ -86,11 +90,17 @@ def _generate_file_messages(file_set: set[str]) -> list[dict]:
         lines = [line.replace(" ", "") for line in lines]
         code = "".join([line for line in lines if line.strip() != ""])
         code = "**FILE: " + fname + "**\n" + code
-
+        if embed: 
+            print(colored("Embedding file: {}... ({} tkn)".format(fname, total_tokens), "green"))
+            file_messages.append(code)
+        else:
+            print(colored("Parsing file: {}... ({}/{} tkn)".format(fname, total_tokens, hard_max), "green"))
+            code_message = {"role": "system", "content": code}
+            file_messages.append(code_message)
         total_tokens += _get_tokens(code)
-        print(colored("Parsing file: {}... ({}/{} tkn)".format(fname, total_tokens, hard_max), "green"))
-        code_message = {"role": "system", "content": code}
-        file_messages.append(code_message)
+        
+    
+    if embed: return file_messages
 
     if total_tokens > (hard_max - 1000):
         print(colored("Warning: Token count ({}) is close to max ({}).".format(total_tokens, hard_max), "yellow"))
@@ -114,3 +124,27 @@ def _get_tokens(string: str) -> int:
 def error(e):
     print(colored("!Error: {}".format(str(e)), "red"), file=sys.stderr)
     return -1
+
+def _init_chroma(path):
+    try:
+        api_key = os.environ["OPENAI_API_KEY"]
+    except KeyError:
+        print(colored("!Error: OPENAI_API_KEY not found in environment", "red"))
+        return None
+    
+    openai_ef = embedding_functions.OpenAIEmbeddingFunction(
+        api_key=api_key,
+        model_name=EMBEDDINGS_MODEL
+    )
+
+    client = chromadb.Client(Settings(
+        chroma_db_impl="duckdb+parquet",
+        persist_directory=path,
+        
+    ))
+
+    collection = client.get_or_create_collection(
+        name="grept-embedding",
+        embedding_function=openai_ef,
+    )
+    return collection

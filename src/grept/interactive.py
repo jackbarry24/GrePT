@@ -1,6 +1,6 @@
 # handle the interactive chat mode w/ embeddings & normal chat
 from termcolor import colored
-from grept.util import _generate_file_messages, _clear
+from grept.util import _generate_file_messages, _clear, _init_chroma
 from grept.completions import answer
 
 class Interactive:
@@ -16,7 +16,9 @@ class EmbeddingChat(Interactive):
         self.embedding = embedding
 
     def load(self):
-        pass
+        
+        self.collection = _init_chroma(self.embedding)
+        
 
 
 class CompletionChat(Interactive):
