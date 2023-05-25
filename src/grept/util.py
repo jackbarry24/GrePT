@@ -91,7 +91,8 @@ def _generate_file_messages(file_set: set[str], embed=False):
         code = "".join([line for line in lines if line.strip() != ""])
         code = "**FILE: " + fname + "**\n" + code
         if embed: 
-            print(colored("Embedding file: {}... ({} tkn)".format(fname, total_tokens), "green"))
+            curr_tokens = _get_tokens(code)
+            print(colored("Embedding file: {}... ({} tkn)".format(fname, curr_tokens), "green"))
             file_messages.append(code)
         else:
             print(colored("Parsing file: {}... ({}/{} tkn)".format(fname, total_tokens, hard_max), "green"))

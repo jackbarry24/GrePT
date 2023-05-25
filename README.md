@@ -21,6 +21,7 @@ Uses chromadb to store embeddings. Pass in a list of files+directory paths and i
 > - `-x`: list of file suffixes to filter by
 
 Examples:
+
 `grept-embed src/ test/ -l 2`: Embed all files in `src/` and `test/` directories and next subdirectory layer, save in the `.chromadb/` folder.
 ### `grept`
 The main chat interface for working with files and embeddings. If chat mode is specified it parses the inputted files, passing them in as chat entries to the API. This is preferable when working with small codebases but when the codebase + chat history exceeds the token limit (4096 for gpt-3.5-turbo) performance degrades. In this case it is best to embed a bunch of files using `grept-embed`. 

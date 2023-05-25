@@ -1,7 +1,8 @@
 # handle the interactive chat mode w/ embeddings & normal chat
 from termcolor import colored
 from grept.util import _generate_file_messages, _clear, _init_chroma
-from grept.completions import answer, embedding_answer
+from grept.completions import embedding_answer
+from grept.completions import answer
 import chromadb
 
 class Interactive:
@@ -30,14 +31,8 @@ class EmbeddingChat(Interactive):
         return context
 
     def interact(self):
-        print("'exit' or 'quit' to exit, 'clear' to clear chat history, 'refresh' to reload files") 
-        if self.init_query:
-            context = self.get_context(self.init_query)
-            response, self.messages = embedding_answer(self.messages, self.init_query, self.tokens, context)
-            print("> " + self.init_query)
-            print(colored("> " + response, "light_blue"))
-            
-
+        print("'exit' or 'quit' to exit, 'clear' to clear chat history") 
+        
         #this should be shared between both subclasses
         while True:
             try:
@@ -55,9 +50,13 @@ class EmbeddingChat(Interactive):
                 if query == "":
                     continue
                 context = self.get_context(query)
-                response, self.messages = embedding_answer(self.messages, query, self.tokens, context)
-                #literally no idea why this line is here
-                response = response.replace("\n", "\n ")
+                self.messages = answer(
+                    self.messages, 
+                    query, 
+                    self.tokens, 
+                    mode="embedding",
+                    context=context,
+                )
             except KeyboardInterrupt:
                 print()
                 return
@@ -75,14 +74,7 @@ class CompletionChat(Interactive):
 
     def interact(self):
         print("'exit' or 'quit' to exit, 'clear' to clear chat history, 'refresh' to reload files") 
-        #handles a -q flag in future
-        if self.init_query:
-            response, self.messages = answer(self.file_messages, self.messages, self.init_query, self.tokens)
-            print("> " + self.init_query)
-            print(colored("> " + response, "light_blue"))
-
-
-        #this should be shared between both subclasses
+    
         while True:
             try:
                 query = input("> ")
@@ -99,9 +91,14 @@ class CompletionChat(Interactive):
                     continue
                 if query == "":
                     continue
-                response, self.messages = answer(self.file_messages, self.messages, query, self.tokens)
-                #literally no idea why this line is here
-                response = response.replace("\n", "\n ")
+                self.messages = answer(
+                    self.messages, 
+                    query,
+                    self.tokens, 
+                    mode="chat", 
+                    context=None, 
+                    file_messages=self.file_messages
+                )
             except KeyboardInterrupt:
                 print()
                 return
