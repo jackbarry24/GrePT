@@ -3,9 +3,10 @@ import os
 from termcolor import cprint
 from rich.console import Console
 from rich.markdown import Markdown
-
 from grept import config, util
 
+
+# calls the openai api to generate a response, with either file or embedded context
 def answer(messages: list[dict], query: str, tokens: int, context=None, file_messages=[]):
     console = Console()
     if context:

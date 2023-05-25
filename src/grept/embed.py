@@ -1,15 +1,13 @@
 import openai
 import os
 from termcolor import colored 
-import chromadb
 import uuid
 import argparse
 import sys
-
-from grept.config import EMBEDDINGS_MODEL
 from grept.util import error, _generate_file_messages, _crawl, _init_chroma
 
 
+#add documents to the chroma collection
 def embed(files, path):
     try:
         openai.api_key = os.environ["OPENAI_API_KEY"]
