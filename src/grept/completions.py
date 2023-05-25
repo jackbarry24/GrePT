@@ -6,9 +6,9 @@ from rich.markdown import Markdown
 
 from grept import config, util
 
-def answer(messages: list[dict], query: str, tokens: int, mode="chat", context=None, file_messages=[]):
+def answer(messages: list[dict], query: str, tokens: int, context=None, file_messages=[]):
     console = Console()
-    if mode == "embedding":
+    if context:
         def code_prompt(context, query):
             documents = context["documents"][0]
             return f"Query: {query}\n\nContext:\n{''.join(documents)}\n"
@@ -52,10 +52,3 @@ def answer(messages: list[dict], query: str, tokens: int, mode="chat", context=N
 
     return messages
     
-
-
- 
-    
-    
-    
-

@@ -1,106 +1,87 @@
-# handle the interactive chat mode w/ embeddings & normal chat
-from termcolor import colored
-from grept.util import _generate_file_messages, _clear, _init_chroma
-from grept.completions import embedding_answer
+from termcolor import cprint
+from grept.util import _generate_file_messages, _init_chroma
 from grept.completions import answer
-import chromadb
 
-class Interactive:
+class Chat:
     def __init__(self, messages, tokens, query):
         self.messages = messages
         self.tokens = tokens
         self.init_query = query
+    
+    def load(self):
+        raise NotImplementedError
+    
+    def refresh(self):
+        raise NotImplementedError
+    
+    def get_answer(self, query):
+        raise NotImplementedError
+    
+    def interact(self):
+        print("'exit' or 'quit' to exit, 'clear' to clear chat history")
+        while True:
+            try:
+                query = input("> ")
+                if query.lower() in ["exit", "quit"]:
+                    break
+                if query.lower() == "clear":
+                    self.messages = []
+                    cprint("Chat history cleared", "green")
+                    continue
+                if query.lower() == "refresh":
+                    self.refresh()
+                    continue
+                if query == "":
+                    continue
+                self.messages = self.get_answer(query)
+            except KeyboardInterrupt:
+                print()
+                return
+            
 
-
-class EmbeddingChat(Interactive):
+class EmbeddingChat(Chat):
     def __init__(self, messages, tokens, query, embedding):
         super().__init__(messages, tokens, query)
         self.embedding = embedding
-        self.collection = None
-
-    def load(self):
         self.collection = _init_chroma(self.embedding)
-        if not self.collection:
-            return -1
-        
-    def get_context(self, prompt):
+
+    def get_context(self, query):
         context = self.collection.query(
-            query_texts = [prompt],
+            query_texts = [query],
             n_results = 3
         )
         return context
+    
+    def get_answer(self, query):
+        context = self.get_context(query)
+        return answer(
+            self.messages, 
+            query, 
+            self.tokens, 
+            context=context,
+        )
+    
+    def refresh(self):
+        cprint("To recompute embeddings call 'grept-embed' from the command line.", "yellow")
 
-    def interact(self):
-        print("'exit' or 'quit' to exit, 'clear' to clear chat history") 
-        
-        #this should be shared between both subclasses
-        while True:
-            try:
-                query = input("> ")
-                if query.lower() in ["exit", "quit"]:
-                    break
-                if query.lower() == "clear":
-                    self.messages = []
-                    _clear()
-                    print(colored("Chat history cleared", "green"))
-                    continue
-                if query.lower() == "refresh":
-                    print(colored("To recompute embeddings call 'grept-embed' from the command line.", "yellow"))
-                    continue
-                if query == "":
-                    continue
-                context = self.get_context(query)
-                self.messages = answer(
-                    self.messages, 
-                    query, 
-                    self.tokens, 
-                    mode="embedding",
-                    context=context,
-                )
-            except KeyboardInterrupt:
-                print()
-                return
-        
-class CompletionChat(Interactive):
-    #create sub class from interactive with extra argument "file_set"
+class CompletionChat(Chat):
     def __init__(self, messages, tokens, query, file_set):
         super().__init__(messages, tokens, query)
         self.file_set = file_set
+        self.file_messages = _generate_file_messages(self.file_set)
 
     def load(self):
         self.file_messages = _generate_file_messages(self.file_set)
-        if not self.file_messages:
-            return -1
 
-    def interact(self):
-        print("'exit' or 'quit' to exit, 'clear' to clear chat history, 'refresh' to reload files") 
+    def get_answer(self, query):
+        return answer(
+            self.messages, 
+            query, 
+            self.tokens, 
+            file_messages=self.file_messages,
+        )
     
-        while True:
-            try:
-                query = input("> ")
-                if query.lower() in ["exit", "quit"]:
-                    break
-                if query.lower() == "clear":
-                    self.messages = []
-                    _clear()
-                    print(colored("Chat history cleared", "green"))
-                    continue
-                if query.lower() == "refresh":
-                    self.messages = []
-                    self.load()
-                    continue
-                if query == "":
-                    continue
-                self.messages = answer(
-                    self.messages, 
-                    query,
-                    self.tokens, 
-                    mode="chat", 
-                    context=None, 
-                    file_messages=self.file_messages
-                )
-            except KeyboardInterrupt:
-                print()
-                return
-
+    def refresh(self):
+        self.messages = []
+        self.load()
     

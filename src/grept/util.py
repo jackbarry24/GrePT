@@ -8,9 +8,6 @@ from chromadb.config import Settings
 
 from grept.config import MAX_INPUT_TOKENS, COMPLETIONS_MODEL, EMBEDDINGS_MODEL
 
-def _clear():
-    os.system("cls" if os.name == "nt" else "clear")
-
 def _crawl(paths: list[str], level: int, suffix: list[str], ignore: list[str]) -> set[str]:
     """Crawl through a list of files and folders
 

@@ -2,8 +2,7 @@ import argparse
 import sys
 from termcolor import cprint, colored
 
-from grept.completions import answer
-from grept.util import _crawl, error, _generate_file_messages
+from grept.util import _crawl, error
 from grept.interactive import EmbeddingChat, CompletionChat
 from grept.__init__ import __version__
 
@@ -35,28 +34,20 @@ def main():
         pass
 
     if args.embed:
-        def load(path): print("loading {}".format(path))
         chat = EmbeddingChat([], args.tokens, "", args.path)
-        chat.load()
         chat.interact()
-
+ 
     else:
         if args.level < 1: 
             error("level must be greater than 0")
             sys.exit(1)
-        file_set = _crawl(args.files, args.level, args.suffix, ignore)
-        if not file_set:
+        if not (file_set := _crawl(args.files, args.level, args.suffix, ignore)):
             error("no files found")
             sys.exit(1)
+
         chat = CompletionChat([], args.tokens, "", file_set)
-        chat.load()
         chat.interact()
     
-
 if __name__ == "__main__":
     main()
 
-
-
-
-       
