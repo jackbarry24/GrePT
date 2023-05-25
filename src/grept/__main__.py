@@ -13,16 +13,16 @@ def main():
 
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("-c", "--chat", action="store_true", help="chat mode")
-    mode.add_argument("-e", "--embed", help="embed mode")
+    mode.add_argument("-e", "--embed", action="store_true", help="embed mode")
 
     parser.add_argument("files", nargs="*", default=["./"], help="files to query for chat mode")
     parser.add_argument("-l", "--level", type=int, default=1, help="level of directory recursion")
     parser.add_argument("-x", "--suffix", nargs="+", help="filter files by suffix")
     parser.add_argument("-t", "--tokens", type=int, default=256, help="maximum tokens to generate")
     parser.add_argument("-v", "--version", action="store_true", help="print version")
+    parser.add_argument("-p", "--path", default=".chromadb/", help="path to load embedding from")
 
     args = parser.parse_args()
-
     if args.version:
         print(__version__)
         sys.exit(0)
@@ -36,7 +36,10 @@ def main():
 
     if args.embed:
         def load(path): print("loading {}".format(path))
-        load(args.embed)
+        chat = EmbeddingChat([], args.tokens, "", args.path)
+        chat.load()
+        chat.interact()
+
     else:
         if args.level < 1: 
             error("level must be greater than 0")

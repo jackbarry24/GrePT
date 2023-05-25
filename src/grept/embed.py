@@ -31,11 +31,12 @@ def embed(files, path):
         documents=f_msgs,
         ids=ids
     )
+
         
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('files', nargs='+', help='list of files to embed')
-    parser.add_argument('--path', default=".chromadb/", help='path to store embedding')
+    parser.add_argument('-p', '--path', default=".chromadb/", help='path to store embedding')
     parser.add_argument("-l", "--level", type=int, default=1, help="level of directory recursion")
     parser.add_argument("-x", "--suffix", nargs="+", help="filter files by suffix")
     args = parser.parse_args()
@@ -45,6 +46,7 @@ def main():
     if embed(file_set, args.path) == -1:
         error("Embedding failed")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
