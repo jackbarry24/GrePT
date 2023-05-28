@@ -9,26 +9,19 @@ from grept import config, util
 # calls the openai api to generate a response, with either file or embedded context
 def answer(messages: list[dict], query: str, tokens: int, context=None, file_messages=[]):
     console = Console()
-    if context:
-        def code_prompt(context, query):
-            documents = context["documents"][0]
-            return f"Query: {query}\n\nContext:\n{''.join(documents)}\n"
-        
-        system_prompt = {
+    system_prompt = {
             "role": "system",
             "content": "You are a helpful assistant with following attributes: \
                         extremely succinct, truthful, dont make stuff up, \
                         answer in the context of the provided files.\n"
         }
-        messages.append({"role": "user", "content": code_prompt(context, query)})
+    
+    if context:
+        documents = context["documents"][0]
+        context_prompt = f"Query: {query}\n\nContext:\n{''.join(documents)}\n"
+        messages.append({"role": "user", "content": context_prompt})
         msgs = [system_prompt, *messages]
     else:
-        system_prompt = {
-            "role": "system",
-            "content": "You are a helpful assistant with following attributes: \
-                        extremely succinct, truthful, dont make stuff up.\n \
-                        Answer questions about the following file(s):\n"
-        }
         messages.append({"role": "user", "content": query})
         msgs = [system_prompt, *file_messages, *messages]
 
@@ -50,6 +43,5 @@ def answer(messages: list[dict], query: str, tokens: int, context=None, file_mes
 
     messages.append({"role": "assistant", "content": response})
     console.print(Markdown(response))
-
     return messages
     

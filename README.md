@@ -9,7 +9,7 @@
 > Add the API key to env: `export OPENAI_API_KEY=<key>` and consider adding it to your `.bashrc` so it remains between sessions.
 
 ## Usage
-GrePT come with two command line tools out of the box:
+GrePT comes with two command line tools out of the box:
 - `grept-embed`: used to calculate embeddings for files within the fs
 - `grept`: used to query the filesystem or a pre-existing embedding using ChatGPT
 

@@ -1,6 +1,5 @@
 import openai
 import os
-from termcolor import colored 
 import uuid
 import argparse
 import sys

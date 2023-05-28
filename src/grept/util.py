@@ -67,10 +67,11 @@ def _generate_file_messages(file_set: set[str], embed=False):
             cprint("Embedding file: {}... ({} tkn)".format(fname, curr_tokens), "green")
             file_messages.append(code)
         else:
+            total_tokens += _get_tokens(code)
             cprint("Parsing file: {}... ({}/{} tkn)".format(fname, total_tokens, hard_max), "green")
             code_message = {"role": "system", "content": code}
             file_messages.append(code_message)
-        total_tokens += _get_tokens(code)
+        #total_tokens += _get_tokens(code)
         
     
     if embed: return file_messages

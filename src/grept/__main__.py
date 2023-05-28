@@ -1,7 +1,5 @@
 import argparse
 import sys
-from termcolor import cprint, colored
-
 from grept.util import _crawl, error
 from grept.interactive import EmbeddingChat, CompletionChat
 from grept.__init__ import __version__
