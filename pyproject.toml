@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "GrePT"
-version = "1.1.1"
+version = "1.2.0"
 description = "Talk to your code"
 readme = "README.md"
 authors = [{name = "Jack Barry", email = "jack.barry@live.com"}]
@@ -27,7 +27,7 @@ grept = "grept.__main__:main"
 grept-embed = "grept.embed:main"
 
 [tool.bumpver]
-current_version = "1.1.1"
+current_version = "1.2.0"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 commit = true
