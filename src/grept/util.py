@@ -76,7 +76,10 @@ def _generate_file_messages(file_set: set[str], embed=False):
     
     if embed: return file_messages
 
-    if total_tokens > (hard_max - 1000):
+    if total_tokens > hard_max:
+        cprint("Warning: Token count ({}) exceeds max ({}).".format(total_tokens, hard_max), "red")
+        cprint("Consider using embeddings.", "red")
+    elif total_tokens > (hard_max - 1000):
         cprint("Warning: Token count ({}) is close to max ({}).".format(total_tokens, hard_max), "yellow")
         cprint("Expect degraded model memory after token limit is exceeded.", "yellow")
         cprint("Consider using embeddings.", "yellow")
